@@ -1,19 +1,24 @@
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "terra-demo-rg"
-    storage_account_name = "terraformcodeopr"
-    container_name       = "tfstatefile"
-    key                  = "dev.terraform.tfstate"
+# Create the Resource Group
+resource "azurerm_resource_group" "this" {
+  name     = "helooo-rg"
+  location = "East US2"
+
+  tags = {
+    environment = "dev"
   }
 }
-module "RG" {
-  source   = "./modules/RG" #A
-  rgname   = var.rgname     #B
-  location = var.location
-}
-module "SA" {
-  source   = "./modules/StorageAccount"
-  sname    = var.sname
-  rgname   = var.rgname
-  location = var.location
+
+# Create the Databricks Workspace
+resource "azurerm_databricks_workspace" "this" {
+  name                        = "helooo-workspace"
+  resource_group_name         = azurerm_resource_group.this.name
+  location                    = azurerm_resource_group.this.location
+  sku                         = "trial" // Options: Standard, Premium, Trial
+  managed_resource_group_name = azurerm_resource_group.this.name // Use the same resource group as the workspace for managed resources
+
+  tags = {
+    environment = "dev"
+  }
+
+  depends_on = [azurerm_resource_group.this]
 }
